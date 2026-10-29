@@ -15,6 +15,16 @@ class ComparisonTests(unittest.TestCase):
     def test_empty(self): self.assertEqual(compare(b'a',b'')['first_difference'],0)
 
 
+class EvidenceCheckOptimizeTests(unittest.TestCase):
+    def test_check_survives_python_optimize(self):
+        # `python -O` strips `assert`; verify_evidence must still fail closed.
+        import subprocess, sys, pathlib
+        here = pathlib.Path(__file__).resolve().parent
+        code = 'import verify_evidence as v\ntry:\n    v.check(False, "x")\nexcept v.EvidenceError:\n    raise SystemExit(7)\n'
+        r = subprocess.run([sys.executable, '-O', '-c', code], cwd=here)
+        self.assertEqual(r.returncode, 7)
+
+
 class RelocationTargetTests(unittest.TestCase):
     def test_target_section_uses_address_not_file_offset(self):
         blob = bytearray(64)
